@@ -1,0 +1,56 @@
+import { Injectable, ConflictException, UnauthorizedException } from '@nestjs/common';
+import { PrismaService } from 'src/prisma/prisma.service';
+import { RegisterDto } from './dto/register.dto';
+import { LoginDto } from './dto/login.dto';
+import * as bcrypt from 'bcrypt';
+import { JwtService } from '@nestjs/jwt';
+
+@Injectable()
+export class AuthService {
+    constructor(
+        private readonly prisma: PrismaService,
+        private readonly jwtService: JwtService
+    ){}
+
+    async register(dto: RegisterDto){
+        const existingUser = await this.prisma.user.findUnique({
+            where: {login: dto.login}
+        })
+        
+        if(existingUser) {
+            throw new ConflictException('User with the same login already exists');
+        }
+        const hashedPassword = await bcrypt.hash(dto.password, 10)
+        const newUser = await this.prisma.user.create({
+            data: {
+                name: dto.name,
+                login: dto.login,
+                password: hashedPassword
+            }
+        });
+        const {password, ...userWithoutPassword} = newUser;
+        return userWithoutPassword;
+    }
+
+    async login(dto: LoginDto){
+        const existingUser = await this.prisma.user.findUnique({
+            where: {login: dto.login}
+        });
+        if(!existingUser) {
+            throw new UnauthorizedException('Invalid user data');
+        }
+        const correctPassword = await bcrypt.compare(dto.password, existingUser.password);
+
+        if(!correctPassword) {
+            throw new UnauthorizedException('Invalid user data');
+        }
+
+        const payload = {
+            id: existingUser.id,
+            login: existingUser.login
+        }
+        return {
+            access_token: await this.jwtService.signAsync(payload)
+        }
+    }
+}

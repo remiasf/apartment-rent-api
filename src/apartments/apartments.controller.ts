@@ -1,0 +1,45 @@
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query, Req, UseGuards } from '@nestjs/common';
+import { ApartmentsService } from './apartments.service';
+import { CreateApartmentDto } from './dto/create-apartment.dto';
+import { UpdateApartmentDto } from './dto/update-apartment.dto';
+import { DiscountApartmentDto } from './dto/discount-apartment.dto';
+import { FilterApartmentDto } from './dto/filter-apartmenr.dto';
+import { JwtAuthGuard } from 'src/auth/jwt-auth.guards';
+
+@Controller('apartments')
+export class ApartmentsController {
+  constructor(private readonly apartmentsService: ApartmentsService) {}
+
+  @UseGuards(JwtAuthGuard)
+  @Post()
+  create(@Req() req, @Body()  createApartmentDto: CreateApartmentDto) {
+    const currentUserId = req.user.id
+    console.log('users data:', createApartmentDto);
+    return this.apartmentsService.create(currentUserId, createApartmentDto);
+  }
+
+  @Get()
+  findAll(@Query() filterDto: FilterApartmentDto) {
+    return this.apartmentsService.findAll(filterDto);
+  }
+
+  @Get(':id')
+  findOne(@Param('id') id: string) {
+    return this.apartmentsService.findOne(+id);
+  }
+
+  @Patch(':id')
+  update(@Param('id') id: string, @Body() updateApartmentDto: UpdateApartmentDto) {
+    return this.apartmentsService.update(+id, updateApartmentDto);
+  }
+
+  @Patch(':id/discount')
+  setDiscount(@Param('id') id: string, @Body() discountDto: DiscountApartmentDto) {
+    return this.apartmentsService.setDiscount(+id, discountDto);
+  }
+
+  @Delete(':id')
+  remove(@Param('id') id: string) {
+    return this.apartmentsService.remove(+id);
+  }
+}
