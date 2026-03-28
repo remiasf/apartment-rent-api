@@ -26,7 +26,7 @@ export class ApartmentsService {
       return newApartment;
   } 
 
-  async findAll(filterDto: FilterApartmentDto) {
+  async findAll(filterDto: FilterApartmentDto, page: number) {
 
       const { minPrice, maxPrice, minSize, maxSize, rooms} = filterDto;
 
@@ -36,11 +36,11 @@ export class ApartmentsService {
         whereCondition.discountPrice = {};
 
         if (minPrice) {
-          whereCondition.discountPrice.gte = minPrice;
+          whereCondition.discountPrice.gte = Number(minPrice);
         }
 
         if (maxPrice) {
-          whereCondition.discountPrice.lte = maxPrice;
+          whereCondition.discountPrice.lte = Number(maxPrice);
         }
       }
       //size filter
@@ -48,20 +48,40 @@ export class ApartmentsService {
         whereCondition.size = {};
 
         if(minSize){
-          whereCondition.size.gte = minSize;
+          whereCondition.size.gte = Number(minSize);
         }
         if(maxSize){
-          whereCondition.size.lte = maxSize;
+          whereCondition.size.lte = Number(maxSize);
         }
       }
       //rooms number filter
       if (rooms) {
-        whereCondition.rooms = rooms;
+        whereCondition.rooms = Number(rooms);
       }
 
-      return this.prisma.apartment.findMany({
+      const limit = 20;
+      const skip = (page - 1) * limit;
+
+
+
+      const apartments = await this.prisma.apartment.findMany({
+        where: whereCondition,
+        take  : limit,
+        skip: skip,
+      });
+
+      const totalCount = await this.prisma.apartment.count({
         where: whereCondition
       });
+
+      return {
+        data: apartments,
+        meta: {
+          total: totalCount,
+          page: page,
+          lastPage: Math.ceil(totalCount / limit)
+        }
+      }
   }
 
   async findOne(id: number) {

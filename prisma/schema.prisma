@@ -6,8 +6,14 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url = env("DATABASE_URL")
+}
+
+enum Role {
+  USER
+  ADMIN
+  LANDLORD
 }
 
 model Agency {
@@ -24,6 +30,7 @@ model User {
   name String
   login String @unique
   password String
+  role Role @default(USER)
 
   agencyId Int?
   agency Agency? @relation(fields: [agencyId], references: [id])  

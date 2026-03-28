@@ -5,12 +5,15 @@ import { UpdateApartmentDto } from './dto/update-apartment.dto';
 import { DiscountApartmentDto } from './dto/discount-apartment.dto';
 import { FilterApartmentDto } from './dto/filter-apartmenr.dto';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guards';
+import { RolesGuard } from 'src/auth/roles.guard';
+import { Roles } from 'src/auth/roles.decorator';
+import { Role } from '@prisma/client';
 
 @Controller('apartments')
 export class ApartmentsController {
   constructor(private readonly apartmentsService: ApartmentsService) {}
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Post()
   create(@Req() req, @Body()  createApartmentDto: CreateApartmentDto) {
     const currentUserId = req.user.id
@@ -19,8 +22,9 @@ export class ApartmentsController {
   }
 
   @Get()
-  findAll(@Query() filterDto: FilterApartmentDto) {
-    return this.apartmentsService.findAll(filterDto);
+  findAll(@Query('page') filterDto: FilterApartmentDto, page: string) {
+    const pageNumber = Number(page) || 1;
+    return this.apartmentsService.findAll(filterDto, pageNumber);
   }
 
   @Get(':id')
@@ -38,7 +42,9 @@ export class ApartmentsController {
     return this.apartmentsService.setDiscount(+id, discountDto);
   }
 
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Delete(':id')
+  @Roles(Role.ADMIN, Role.LANDLORD)
   remove(@Param('id') id: string) {
     return this.apartmentsService.remove(+id);
   }
