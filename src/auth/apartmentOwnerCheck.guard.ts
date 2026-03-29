@@ -7,20 +7,25 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 
+
 @Injectable()
 export class IsApartmentOwnerGuard implements CanActivate {
   constructor(private readonly prisma: PrismaService) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
+
     const request = context.switchToHttp().getRequest();
+    const user = request.user; 
 
-    const userId = request.user?.id; 
-    
-    const apartmentId = parseInt(request.params.id, 10); 
-
-    if (!userId) {
-      throw new ForbiddenException('User not authorized');
+    if (!user || !user.id) { 
+        throw new ForbiddenException('User not authorized');
     }
+
+    if (user.role === 'ADMIN') {
+        return true;
+    }
+
+    const apartmentId = parseInt(request.params.id, 10); 
     if (isNaN(apartmentId)) {
       throw new NotFoundException('Incorrect ID');
     }
@@ -34,8 +39,8 @@ export class IsApartmentOwnerGuard implements CanActivate {
       throw new NotFoundException('Apartment not found');
     }
 
-    if (apartment.userId !== userId) {
-      throw new ForbiddenException('You have no right to configure this apartment');
+    if (apartment.userId !== user.id) {
+      throw new ForbiddenException('You have no rights to configure this apartment');
     }
 
     return true; 
