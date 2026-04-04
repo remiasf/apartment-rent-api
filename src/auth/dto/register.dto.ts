@@ -1,4 +1,4 @@
-import { IsAlphanumeric, IsNotEmpty, IsString, MaxLength, MinLength } from 'class-validator';
+import { IsAlphanumeric, IsEmail, IsNotEmpty, IsOptional, IsString, IsUrl, MaxLength, MinLength } from 'class-validator';
 
 export class RegisterDto {
     @IsString()
@@ -13,6 +13,21 @@ export class RegisterDto {
     @MaxLength(20, {message: 'Your login is too long'})
     @IsAlphanumeric()
     login: string;
+
+    @IsNotEmpty()
+    @IsEmail()
+    email: string;
+
+    @IsString()
+    @IsOptional()
+    @MinLength(20, {message: 'Bio minimum length is 20 characters'})
+    @MaxLength(200, {message: 'Bio can`t be more than 200 characters'})
+    bio?: string;
+
+    @IsString()
+    @IsOptional()
+    @IsUrl()
+    avatarUrl?: string
 
     @IsString()
     @MinLength(6, {message: 'Your password can`t be shorter than 6 characters'})

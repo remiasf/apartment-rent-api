@@ -4,11 +4,12 @@ import { CreateApartmentDto } from './dto/create-apartment.dto';
 import { UpdateApartmentDto } from './dto/update-apartment.dto';
 import { DiscountApartmentDto } from './dto/discount-apartment.dto';
 import { FilterApartmentDto } from './dto/filter-apartmenr.dto';
-import { JwtAuthGuard } from 'src/auth/jwt-auth.guards';
-import { RolesGuard } from 'src/auth/roles.guard';
-import { Roles } from 'src/auth/roles.decorator';
+import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guards';
+import { RolesGuard } from 'src/common/guards/roles.guard';
+import { Roles } from 'src/common/decorators/roles.decorator';
 import { Role } from '@prisma/client';
-import { IsApartmentOwnerGuard } from 'src/auth/apartmentOwnerCheck.guard';
+import { IsApartmentOwnerGuard } from 'src/common/guards/apartmentOwnerCheck.guard';
+import { CurrentUserID } from 'src/common/decorators/currentUserID.decorator';
 
 @Controller('apartments')
 export class ApartmentsController {
@@ -17,16 +18,15 @@ export class ApartmentsController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.LANDLORD)
   @Post()
-  create(@Req() req, @Body()  createApartmentDto: CreateApartmentDto) {
-    const currentUserId = req.user.id
+  create(@CurrentUserID() userId: number, @Body()  createApartmentDto: CreateApartmentDto) {
     console.log('users data:', createApartmentDto);
-    return this.apartmentsService.create(currentUserId, createApartmentDto);
+    return this.apartmentsService.create(userId, createApartmentDto);
   }
 
 
   @Get()
-  findAll(@Query() filterDto: FilterApartmentDto, @Query('page') page: string) {
-    const pageNumber = Number(page) || 1;
+  findAll(@Query() filterDto: FilterApartmentDto) {
+    const pageNumber = Number(filterDto.page) || 1;
     return this.apartmentsService.findAll(filterDto, pageNumber);
   }
 
@@ -36,7 +36,7 @@ export class ApartmentsController {
   }
 
   @UseGuards(JwtAuthGuard, IsApartmentOwnerGuard, RolesGuard)
-  @Roles(Role.ADMIN, Role.LANDLORD)
+  @Roles(Role.SUPER_ADMIN ,Role.ADMIN, Role.LANDLORD)
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateApartmentDto: UpdateApartmentDto) {
     return this.apartmentsService.update(+id, updateApartmentDto);
@@ -50,7 +50,7 @@ export class ApartmentsController {
   }
 
   @UseGuards(JwtAuthGuard, IsApartmentOwnerGuard, RolesGuard)
-  @Roles(Role.ADMIN, Role.LANDLORD)
+  @Roles(Role.SUPER_ADMIN, Role.ADMIN, Role.LANDLORD)
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.apartmentsService.remove(+id);

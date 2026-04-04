@@ -1,5 +1,6 @@
-import { IsNumber, IsOptional, IsPositive, Max, Min } from "class-validator";
+import { IsNumber, IsOptional, IsPositive, IsString, Max, Min } from "class-validator";
 import { Type } from "class-transformer";
+import { ApiProperty } from "@nestjs/swagger";
 
 export class FilterApartmentDto {
     
@@ -34,4 +35,9 @@ export class FilterApartmentDto {
     @Min(1)
     @Max(20)
     rooms?: number
+
+    @ApiProperty({description: 'page number', required: false})
+    @IsString()
+    @IsOptional()
+    page?:string
 }

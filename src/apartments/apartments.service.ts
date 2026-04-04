@@ -26,7 +26,7 @@ export class ApartmentsService {
       return newApartment;
   } 
 
-  async findAll(filterDto: FilterApartmentDto, page: number) {
+  async findAll(filterDto: FilterApartmentDto, pageNumber: number) {
 
       const { minPrice, maxPrice, minSize, maxSize, rooms} = filterDto;
 
@@ -60,7 +60,7 @@ export class ApartmentsService {
       }
 
       const limit = 20;
-      const skip = (page - 1) * limit;
+      const skip = (pageNumber - 1) * limit;
 
 
 
@@ -78,7 +78,7 @@ export class ApartmentsService {
         data: apartments,
         meta: {
           total: totalCount,
-          page: page,
+          page: filterDto.page,
           lastPage: Math.ceil(totalCount / limit)
         }
       }

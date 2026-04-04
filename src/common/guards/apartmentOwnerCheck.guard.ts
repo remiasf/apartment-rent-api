@@ -5,7 +5,7 @@ import {
   NotFoundException, 
   ForbiddenException 
 } from '@nestjs/common';
-import { PrismaService } from '../prisma/prisma.service';
+import { PrismaService } from '../../prisma/prisma.service';
 
 
 @Injectable()
@@ -21,7 +21,7 @@ export class IsApartmentOwnerGuard implements CanActivate {
         throw new ForbiddenException('User not authorized');
     }
 
-    if (user.role === 'ADMIN') {
+    if (user.role === 'ADMIN' || user.role === 'SUPER_ADMIN') {
         return true;
     }
 
