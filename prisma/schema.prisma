@@ -7,7 +7,6 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url = env("DATABASE_URL")
 }
 
 enum Role {
@@ -15,15 +14,6 @@ enum Role {
   ADMIN
   LANDLORD
   SUPER_ADMIN 
-}
-
-model Agency {
-  id Int @id @default(autoincrement())
-  name String @unique
-  description String
-
-  users User[]
-  requests AgencyRequest[]
 }
 
 model User {
@@ -34,23 +24,10 @@ model User {
   email String @unique
   bio String?
   avatarUrl String?
-  role Role @default(USER)
-
-  agencyId Int?
-  agency Agency? @relation(fields: [agencyId], references: [id])  
+  role Role @default(USER)  
 
   apartments Apartment[]
-  requests AgencyRequest[]
-}
-
-model AgencyRequest {
-  id Int @id @default(autoincrement())
-  userId Int
-  agencyId Int
-  status String @default("PENDING")
-
-  agency Agency @relation(fields: [agencyId], references: [id])
-  user User @relation(fields: [userId], references: [id])
+  bookings Booking[]
 }
 
 model Apartment {
@@ -62,7 +39,30 @@ model Apartment {
   rooms Int
 
   userId Int
-
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  bookings Booking[]
+}
+
+model Booking {
+  id Int @id @default(autoincrement())
+  createdAt DateTime @default(now())
+  startDate DateTime
+  endDate DateTime
+  updatedAt DateTime @updatedAt
+  status BookingStatus @default(PENDING)
+
+  userId Int
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  apartmentId Int
+  apartment Apartment @relation(fields: [apartmentId], references: [id], onDelete: Cascade)
+}
+
+enum BookingStatus {
+  PENDING
+  APPROVED
+  COMPLETED
+  CANCELLED
 }
 
