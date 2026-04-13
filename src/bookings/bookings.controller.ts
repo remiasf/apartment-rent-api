@@ -1,10 +1,14 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, ParseIntPipe } from '@nestjs/common';
 import { BookingsService } from './bookings.service';
 import { CreateBookingDto } from './dto/create-booking.dto';
 import { UpdateBookingDto } from './dto/update-booking.dto';
 import { CurrentUserID } from 'src/common/decorators/currentUserID.decorator';
+import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guards';
+import { RolesGuard } from 'src/common/guards/roles.guard';
+import { Roles } from 'src/common/decorators/roles.decorator';
 
 @Controller('bookings')
+@UseGuards(JwtAuthGuard)
 export class BookingsController {
   constructor(private readonly bookingsService: BookingsService) {}
 
@@ -19,22 +23,26 @@ export class BookingsController {
   }
 
   @Get(':id')
-  bookingInfo(@Param('id') bookingId: string, @CurrentUserID() userId: number) {
-    return this.bookingsService.bookingInfo(+bookingId, userId);
+  bookingInfo(@Param('id', ParseIntPipe) bookingId: number, @CurrentUserID() userId: number) {
+    return this.bookingsService.bookingInfo(bookingId, userId);
   }
 
   @Patch(':id/cancel')
-  userCancelBooking(@Param('id') bookingId: string, @CurrentUserID() userId: number) {
-    return this.bookingsService.userCancelBooking(+bookingId, userId);
+  userCancelBooking(@Param('id', ParseIntPipe) bookingId: number, @CurrentUserID() userId: number) {
+    return this.bookingsService.userCancelBooking(bookingId, userId);
   }
 
   @Patch(':id/reject')
-  landlordRejectBooking(@Param('id') bookingId: string, @CurrentUserID() landlordId: number) {
-    return this.bookingsService.landlordRejectBooking(+bookingId, landlordId);
+  @UseGuards(RolesGuard)
+  @Roles('LANDLORD', 'ADMIN', 'SUPER_ADMIN')
+  landlordRejectBooking(@Param('id', ParseIntPipe) bookingId: number, @CurrentUserID() landlordId: number) {
+    return this.bookingsService.landlordRejectBooking(bookingId, landlordId);
   }
 
   @Patch(':id/approve')
-  landlordApproveBooking(@Param('id') bookingId: string, @CurrentUserID() landlordId: number) {
-    return this.bookingsService.landlordApproveBooking(+bookingId, landlordId);
+  @UseGuards(RolesGuard)
+  @Roles('LANDLORD', 'ADMIN', 'SUPER_ADMIN')
+  landlordApproveBooking(@Param('id', ParseIntPipe) bookingId: number, @CurrentUserID() landlordId: number) {
+    return this.bookingsService.landlordApproveBooking(bookingId, landlordId);
   }
 }
