@@ -3,7 +3,7 @@ import { CreateApartmentDto } from './dto/create-apartment.dto';
 import { UpdateApartmentDto } from './dto/update-apartment.dto';
 import { DiscountApartmentDto } from './dto/discount-apartment.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { FilterApartmentDto } from './dto/filter-apartmenr.dto';
+import { FilterApartmentDto } from './dto/filter-apartment.dto';
 
 @Injectable()
 export class ApartmentsService {

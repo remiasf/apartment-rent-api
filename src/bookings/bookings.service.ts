@@ -1,6 +1,5 @@
 import { BadRequestException, ConflictException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { CreateBookingDto } from './dto/create-booking.dto';
-import { UpdateBookingDto } from './dto/update-booking.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { BookingStatus, Prisma } from '@prisma/client';
 
@@ -13,8 +12,19 @@ export class BookingsService {
       throw new BadRequestException('Invalid booking period');
     }
 
-    if (dto.startDate < new Date()) {
-      throw new BadRequestException('Invalid booking period');
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    const start = new Date(dto.startDate);
+    start.setHours(0, 0, 0, 0);
+
+    const end = new Date(dto.endDate);
+    end.setHours(0, 0, 0, 0);
+
+    const rentPeriod = Math.round((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24) || 1);
+
+    if (start < today) {
+      throw new BadRequestException('You can`t book an apartment in the past');
     }
     
     const overlap = await this.prisma.booking.findFirst({
@@ -22,8 +32,8 @@ export class BookingsService {
         apartmentId: dto.apartmentId,
         status: {not: 'CANCELLED'},
         AND: [
-          { startDate: { lt: dto.endDate }},
-          { endDate: { gt: dto.startDate}}
+          { startDate: { lt: end }},
+          { endDate: { gt: start}}
         ]
       },
     });
@@ -32,10 +42,27 @@ export class BookingsService {
       throw new ConflictException('The apartment is already booked for these dates');
     }
 
+    const apartment = await this.prisma.apartment.findUnique({
+      where: {
+        id: dto.apartmentId
+      },
+      select: {
+        price: true
+      }
+    });
+
+    if(!apartment){
+      throw new NotFoundException('Apartment not found');
+    }
+
     const newRecord = await this.prisma.booking.create({
       data: {
-        ...dto,
-        userId: id
+        startDate: start,
+        endDate: end,
+        apartmentId: dto.apartmentId,
+        userId: id,
+        dailyPrice: apartment.price,
+        totalPrice: apartment.price * rentPeriod
       }
     });
 

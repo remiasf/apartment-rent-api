@@ -50,6 +50,9 @@ model Booking {
   startDate DateTime
   endDate DateTime
   updatedAt DateTime @updatedAt
+  dailyPrice Int
+  totalPrice Int
+
   status BookingStatus @default(PENDING)
 
   userId Int

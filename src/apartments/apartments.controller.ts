@@ -3,7 +3,7 @@ import { ApartmentsService } from './apartments.service';
 import { CreateApartmentDto } from './dto/create-apartment.dto';
 import { UpdateApartmentDto } from './dto/update-apartment.dto';
 import { DiscountApartmentDto } from './dto/discount-apartment.dto';
-import { FilterApartmentDto } from './dto/filter-apartmenr.dto';
+import { FilterApartmentDto } from './dto/filter-apartment.dto';
 import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guards';
 import { RolesGuard } from 'src/common/guards/roles.guard';
 import { Roles } from 'src/common/decorators/roles.decorator';
