@@ -6,6 +6,7 @@ import { CurrentUserID } from 'src/common/decorators/currentUserID.decorator';
 import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guards';
 import { RolesGuard } from 'src/common/guards/roles.guard';
 import { Roles } from 'src/common/decorators/roles.decorator';
+import { FilterBookingDto } from './dto/filter-booking.dto';
 
 @Controller('bookings')
 @UseGuards(JwtAuthGuard)
@@ -18,8 +19,8 @@ export class BookingsController {
   }
 
   @Get('me')
-  myBookings(@CurrentUserID() id: number) {
-    return this.bookingsService.myBookings(id);
+  myBookings(@CurrentUserID() id: number, @Body() dto: FilterBookingDto) {
+    return this.bookingsService.myBookings(id, dto);
   }
 
   @Get(':id')

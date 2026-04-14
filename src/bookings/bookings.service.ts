@@ -2,6 +2,7 @@ import { BadRequestException, ConflictException, ForbiddenException, Injectable,
 import { CreateBookingDto } from './dto/create-booking.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { BookingStatus, Prisma } from '@prisma/client';
+import { FilterBookingDto } from './dto/filter-booking.dto';
 
 @Injectable()
 export class BookingsService {
@@ -72,18 +73,45 @@ export class BookingsService {
     };
   }
 
-  async myBookings(id: number) {
+  async myBookings(id: number, dto: FilterBookingDto) {
+    const {limit = 10, page = 1} = dto;
+    
+    const safeLimit = Math.min(limit, 100);
+    const skip = (page - 1) * safeLimit;
 
-    const bookings = await this.prisma.booking.findMany({
-      where:{
-        userId: id
-      },
-      orderBy:{
-        createdAt: 'desc'
-      },
-    });
+    const [bookings, total] = await Promise.all([
+      this.prisma.booking.findMany({
+        where:{
+          userId: id
+        },
+        take: safeLimit,
+        skip: skip,
+        select:{
+          id: true,
+          status: true,
+          startDate: true,
+          totalPrice: true
+        },
+        orderBy:{
+          createdAt: 'desc'
+        },
+      }),
+      this.prisma.booking.count({
+        where: {
+          userId: id
+        }
+      })
+    ]);
 
-    return bookings;
+    return {
+      data: bookings,
+      meta: {
+        total,
+        page,
+        limit: safeLimit,
+        totalPages: Math.ceil(total / safeLimit)
+      }
+    };
   }
 
   async bookingInfo(bookingId:number, userId: number) {
