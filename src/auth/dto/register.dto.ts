@@ -1,4 +1,9 @@
-import { IsAlphanumeric, IsEmail, IsNotEmpty, IsOptional, IsString, IsUrl, MaxLength, MinLength } from 'class-validator';
+import { IsAlphanumeric, IsEmail, IsEnum, IsNotEmpty, IsOptional, IsString, IsUrl, MaxLength, MinLength } from 'class-validator';
+
+export enum RegistrationRole {
+  USER = 'USER',
+  LANDLORD = 'LANDLORD'
+}
 
 export class RegisterDto {
     @IsString()
@@ -33,4 +38,8 @@ export class RegisterDto {
     @MinLength(6, {message: 'Your password can`t be shorter than 6 characters'})
     @MaxLength(28, {message: 'Your password is too long'})
     password: string;
+
+    @IsOptional()
+    @IsEnum(RegistrationRole, {message: 'You only can choose USER or LANDLORD role'})
+    role?: RegistrationRole;
 }

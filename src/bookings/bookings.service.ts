@@ -74,32 +74,34 @@ export class BookingsService {
   }
 
   async myBookings(id: number, dto: FilterBookingDto) {
-    const {limit = 10, page = 1} = dto;
+    const {limit = 10, page = 1, status} = dto;
     
     const safeLimit = Math.min(limit, 100);
     const skip = (page - 1) * safeLimit;
 
+    const whereCondition: Prisma.BookingWhereInput = {
+      userId: id,
+      ...(status && {status})
+    };
+
     const [bookings, total] = await Promise.all([
       this.prisma.booking.findMany({
-        where:{
-          userId: id
-        },
+        where: whereCondition,
         take: safeLimit,
         skip: skip,
         select:{
           id: true,
           status: true,
           startDate: true,
-          totalPrice: true
+          totalPrice: true,
+          apartment: { select: { title: true } }
         },
         orderBy:{
           createdAt: 'desc'
         },
       }),
       this.prisma.booking.count({
-        where: {
-          userId: id
-        }
+        where: whereCondition,
       })
     ]);
 
@@ -114,7 +116,52 @@ export class BookingsService {
     };
   }
 
-  async bookingInfo(bookingId:number, userId: number) {
+  async landlordRequests(landlordId: number, dto: FilterBookingDto) {
+    const {limit = 10, page = 1, status} = dto;
+    
+    const safeLimit = Math.min(limit, 100);
+    const skip = (page - 1) * safeLimit;
+
+    const whereCondition: Prisma.BookingWhereInput = {
+      apartment:{userId: landlordId},
+      ...(status && {status})
+    }
+
+    const [bookings, total] = await Promise.all([
+      this.prisma.booking.findMany({
+        where: whereCondition,
+        take: safeLimit,
+        skip: skip,
+        select:{
+          id: true,
+          status: true,
+          startDate: true,
+          endDate: true,
+          totalPrice: true,
+          apartment: {select:{title: true}},
+          user: {select:{email: true}}
+        },
+        orderBy:{
+          createdAt: 'desc'
+        },
+      }),
+      this.prisma.booking.count({
+        where: whereCondition
+      })
+    ]);
+
+    return {
+      data: bookings,
+      meta: {
+        total,
+        page,
+        limit: safeLimit,
+        totalPages: Math.ceil(total / safeLimit)
+      }
+    }
+  }
+  
+  async bookingInfo(bookingId: number, userId: number) {
 
     const booking = await this.prisma.booking.findUnique({
       where:{
