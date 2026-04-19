@@ -32,7 +32,7 @@ model User {
 
 model Apartment {
   id Int @id @default(autoincrement())
-  title String @unique
+  title String
   discountPrice Int?
   size Float
   price Int

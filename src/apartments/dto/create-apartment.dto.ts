@@ -1,29 +1,57 @@
+import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { IsString, IsPositive, MinLength, MaxLength, IsNumber, Min, Max, IsOptional, } from "class-validator";
 
 export class CreateApartmentDto {
+    @ApiProperty({
+        minLength: 5,
+        maxLength: 26,
+        example: 'Cozy apartment'
+    })
     @IsString()
     @MinLength(5)
     @MaxLength(26)
-    title: string;
+    title!: string;
 
+    @ApiPropertyOptional({
+        description: 'Optional field to appy a discount to any apartment you own',
+        minimum: 1,
+        maximum: 50,
+        example: 10  
+    })
     @IsOptional()
     @IsNumber()
     @IsPositive()
+    @Min(1)
+    @Max(50)
     discountPrice?: number;
 
+    @ApiProperty({
+        description: 'Daily apartment rent fee',
+        minimum: 100,
+        maximum: 1000000,
+        example: 1350
+    })
     @IsNumber()
     @IsPositive()
-    @Min(10000)
-    @Max(10000000)
-    price: number;
+    @Min(100)
+    @Max(1000000)
+    price!: number;
 
+    @ApiProperty({
+        description: 'Square meter size of the flat',
+        example: 25
+    })
     @IsNumber()
     @IsPositive()
-    size: number
+    size!: number
 
+    @ApiProperty({
+        description: 'The number of rooms quantity',
+        example: 1
+    })
     @IsNumber()
     @IsPositive()
     @Min(1)
     @Max(12)
-    rooms: number;
+    rooms!: number;
 }

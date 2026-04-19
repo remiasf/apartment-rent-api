@@ -177,6 +177,37 @@ export class BookingsService {
     return booking;
   }
 
+  async landlordBookingInfo(bookingId: number, landlordId: number) {
+    const booking = await this.prisma.booking.findFirst({ 
+      where: {
+        id: bookingId,
+        apartment: {
+          userId: landlordId
+        }
+      },
+      include: {
+        user: {
+          select: {
+            name: true,
+            email: true,
+          }
+        },
+        apartment: {
+          select: {
+            title: true,
+            price: true
+          }
+        }
+      }
+    });
+
+    if (!booking) {
+      throw new NotFoundException('Booking not found or you do not have access to it');
+    }
+
+    return booking;
+  }
+
   async userCancelBooking(bookingId: number, userId: number) {
     try{
       const cancelledBooking = await this.prisma.booking.update({
@@ -193,20 +224,23 @@ export class BookingsService {
       });
 
       return {
-        message: 'Your booking has been cancelled successfully'
+        message: 'Your booking has been cancelled successfully',
+        booking: cancelledBooking
       };
       
-    }catch(error){
-      if(error.code === 'P2025'){
-        throw new ForbiddenException('You can only cancel your own bookings, or booking not found');
-      }
+    }catch (error) {
+      if (error instanceof Prisma.PrismaClientKnownRequestError) {
+        if (error.code === 'P2025') {
+          throw new ForbiddenException('You can only cancel your own bookings, or booking not found');
+        }
+      }      
       throw error;
     }
   }
 
   async landlordRejectBooking(bookingId: number, landlordId: number){
     try {
-      const cancelledBooking = await this.prisma.booking.update({
+      const rejectedBooking = await this.prisma.booking.update({
         where: {
           id: bookingId,
           apartment: {
@@ -220,20 +254,23 @@ export class BookingsService {
       });
 
       return {
-        message: 'Booking has been rejected successfully'
+        message: 'Booking has been rejected successfully',
+        booking: rejectedBooking
       }
 
-    }catch(error){
-      if(error.code === 'P2025'){
-        throw new ForbiddenException('You can only cancel your own bookings, or booking not found');
-      }
+    }catch (error) {
+      if (error instanceof Prisma.PrismaClientKnownRequestError) {
+        if (error.code === 'P2025') {
+          throw new ForbiddenException('You can only reject booking of appartment you own, or booking not found');
+        }
+      }      
       throw error;
     }
   }
 
   async landlordApproveBooking(bookingId: number, landlordId: number){
     try {
-      const cancelledBooking = await this.prisma.booking.update({
+      const approvedBooking = await this.prisma.booking.update({
         where: {
           id: bookingId,
           apartment: {
@@ -247,13 +284,16 @@ export class BookingsService {
       });
 
       return {
-        message: 'Booking has been approved successfully'
+        message: 'Booking has been approved successfully',
+        booking: approvedBooking
       }
 
-    }catch(error){
-      if(error.code === 'P2025'){
-        throw new ForbiddenException('You can only approve your own bookings, or booking not found');
-      }
+    }catch (error) {
+      if (error instanceof Prisma.PrismaClientKnownRequestError) {
+        if (error.code === 'P2025') {
+          throw new ForbiddenException('You can only approve booking of appartment you own, or booking not found');
+        }
+      }      
       throw error;
     }
   }
