@@ -7,7 +7,7 @@ import { RolesGuard } from 'src/common/guards/roles.guard';
 import { Roles } from 'src/common/decorators/roles.decorator';
 import { FilterBookingDto } from './dto/filter-booking.dto';
 import { Role } from '@prisma/client';
-import { ApiOperation } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
 
 @Controller('bookings')
 @UseGuards(JwtAuthGuard)
@@ -16,6 +16,7 @@ export class BookingsController {
   @ApiOperation({
     summary: 'Create booking'
   })
+  @ApiBearerAuth()
   @Post('book')
   createBooking(@CurrentUserID() id: number, @Body() dto: CreateBookingDto) {
     return this.bookingsService.createBooking(id, dto);
@@ -24,6 +25,7 @@ export class BookingsController {
   @ApiOperation({
     summary: 'Get all my bookings (pagination)'
   })
+  @ApiBearerAuth()
   @Get('me')
   myBookings(@CurrentUserID() id: number, @Query() dto: FilterBookingDto) {
     return this.bookingsService.myBookings(id, dto);
@@ -32,6 +34,7 @@ export class BookingsController {
   @ApiOperation({
     summary: 'Landlords rent requests (paginations)'
   })
+  @ApiBearerAuth()
   @Get('requests')
   @UseGuards(RolesGuard)
   @Roles(Role.LANDLORD)
@@ -42,6 +45,7 @@ export class BookingsController {
   @ApiOperation({
     summary: 'Single booking info (for simple users)'
   })
+  @ApiBearerAuth()
   @Get(':id')
   bookingInfo(@Param('id', ParseIntPipe) bookingId: number, @CurrentUserID() userId: number) {
     return this.bookingsService.bookingInfo(bookingId, userId);
@@ -50,6 +54,7 @@ export class BookingsController {
   @ApiOperation({
     summary: 'Single booking info (for landlords)'
   })
+  @ApiBearerAuth()
   @Get(':id/landlord')
   @UseGuards(RolesGuard)
   @Roles(Role.LANDLORD)
@@ -60,6 +65,7 @@ export class BookingsController {
   @ApiOperation({
     summary: 'Booking cancel (for users)'
   })
+  @ApiBearerAuth()
   @Patch(':id/cancel')
   userCancelBooking(@Param('id', ParseIntPipe) bookingId: number, @CurrentUserID() userId: number) {
     return this.bookingsService.userCancelBooking(bookingId, userId);
@@ -68,6 +74,7 @@ export class BookingsController {
   @ApiOperation({
     summary: 'Booking reject (for landlords)'
   })
+  @ApiBearerAuth()
   @Patch(':id/reject')
   @UseGuards(RolesGuard)
   @Roles(Role.LANDLORD)
@@ -78,6 +85,7 @@ export class BookingsController {
   @ApiOperation({
     summary: 'Booking approving (for landlords)'
   })
+  @ApiBearerAuth()
   @Patch(':id/approve')
   @UseGuards(RolesGuard)
   @Roles(Role.LANDLORD)

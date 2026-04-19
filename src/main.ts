@@ -18,14 +18,13 @@ async function bootstrap() {
   }));
 
   const config = new DocumentBuilder()
-    .setTitle('GaijinPot API') // Красивое название твоего проекта
+    .setTitle('GaijinPot API') 
     .setDescription('Документация для API аренды квартир')
     .setVersion('1.0')
-    .addBearerAuth() // <-- СУПЕР ВАЖНО! Говорим Сваггеру, что у нас есть JWT токены
+    .addBearerAuth() 
     .build();
     
   const document = SwaggerModule.createDocument(app, config);
-  // 'api' — это URL, по которому будет доступна документация
   SwaggerModule.setup('api', app, document); 
   // =========================
 
