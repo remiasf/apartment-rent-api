@@ -13,16 +13,16 @@ export class CreateApartmentDto {
     title!: string;
 
     @ApiPropertyOptional({
-        description: 'Optional field to appy a discount to any apartment you own',
-        minimum: 1,
-        maximum: 50,
-        example: 10  
+        description: 'Appy a discount price to apartment',
+        minimum: 100,
+        maximum: 1000000,
+        example: 1200  
     })
     @IsOptional()
     @IsNumber()
     @IsPositive()
-    @Min(1)
-    @Max(50)
+    @Min(100)
+    @Max(1000000)
     discountPrice?: number;
 
     @ApiProperty({

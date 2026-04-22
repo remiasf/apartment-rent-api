@@ -13,10 +13,12 @@ export class AuthService {
     ){}
 
     async register(dto: RegisterDto){
-        const existingUser = await this.prisma.user.findUnique({
+        const existingUser = await this.prisma.user.findFirst({
             where: {
-                login: dto.login,
-                email: dto.email
+                OR: [
+                    {login: dto.login},
+                    {email: dto.email}
+                ]
             }
         })
         
@@ -37,8 +39,14 @@ export class AuthService {
                 role: finalRole
             }
         });
-        const {password, ...userWithoutPassword} = newUser;
-        return userWithoutPassword;
+
+        const { id, login, role } = newUser;
+
+        const payload = { id, login, role};
+        
+        return {
+            access_token: await this.jwtService.signAsync(payload)
+        };
     }
 
     async login(dto: LoginDto){

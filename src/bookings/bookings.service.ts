@@ -8,69 +8,77 @@ import { FilterBookingDto } from './dto/filter-booking.dto';
 export class BookingsService {
   constructor(private prisma: PrismaService){}
   async createBooking( id:number ,dto: CreateBookingDto) {
-    
-    if (dto.startDate > dto.endDate) {
-      throw new BadRequestException('Invalid booking period');
-    }
+    return this.prisma.$transaction(async (tx) => {
+      const apartment = await tx.apartment.findUnique({
+        where: {
+          id: dto.apartmentId,
+        },
+        select:{ price: true, userId: true}
+      });
 
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    
-    const start = new Date(dto.startDate);
-    start.setHours(0, 0, 0, 0);
-
-    const end = new Date(dto.endDate);
-    end.setHours(0, 0, 0, 0);
-
-    const rentPeriod = Math.round((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24) || 1);
-
-    if (start < today) {
-      throw new BadRequestException('You can`t book an apartment in the past');
-    }
-    
-    const overlap = await this.prisma.booking.findFirst({
-      where: {
-        apartmentId: dto.apartmentId,
-        status: {not: 'CANCELLED'},
-        AND: [
-          { startDate: { lt: end }},
-          { endDate: { gt: start}}
-        ]
-      },
-    });
-
-    if (overlap) {
-      throw new ConflictException('The apartment is already booked for these dates');
-    }
-
-    const apartment = await this.prisma.apartment.findUnique({
-      where: {
-        id: dto.apartmentId
-      },
-      select: {
-        price: true
+      if (!apartment) {
+        throw new NotFoundException('Apartment not found');
       }
-    });
 
-    if(!apartment){
-      throw new NotFoundException('Apartment not found');
-    }
-
-    const newRecord = await this.prisma.booking.create({
-      data: {
-        startDate: start,
-        endDate: end,
-        apartmentId: dto.apartmentId,
-        userId: id,
-        dailyPrice: apartment.price,
-        totalPrice: apartment.price * rentPeriod
+      if (apartment.userId === id) {
+        throw new ForbiddenException('You can`t book your own property');
       }
-    });
 
-    return {
-      message: 'The apartment has been booked successfully',
-      bookingId: newRecord.id
-    };
+      if (dto.startDate > dto.endDate) {
+        throw new BadRequestException('Invalid booking period');
+      }
+
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      
+      const start = new Date(dto.startDate);
+      start.setHours(0, 0, 0, 0);
+
+      const end = new Date(dto.endDate);
+      end.setHours(0, 0, 0, 0);
+
+      const rentPeriod = Math.round((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24) || 1);
+
+      if (start < today) {
+        throw new BadRequestException('You can`t book an apartment in the past');
+      }
+      
+      const overlap = await tx.booking.findFirst({
+        where: {
+          apartmentId: dto.apartmentId,
+          status: {not: 'CANCELLED'},
+          AND: [
+            { startDate: { lt: end }},
+            { endDate: { gt: start}}
+          ]
+        },
+      });
+
+      if (overlap) {
+        throw new ConflictException('The apartment is already booked for these dates');
+      }
+
+      const newRecord = await tx.booking.create({
+        data: {
+          startDate: start,
+          endDate: end,
+          apartmentId: dto.apartmentId,
+          userId: id,
+          dailyPrice: apartment.price,
+          totalPrice: apartment.price * rentPeriod
+        }
+      });
+
+      return {
+        message: 'The apartment has been booked successfully',
+        bookingId: newRecord.id
+      };
+
+    },
+    {
+      timeout: 10000,
+      isolationLevel: Prisma.TransactionIsolationLevel.Serializable
+    }); 
   }
 
   async myBookings(id: number, dto: FilterBookingDto) {

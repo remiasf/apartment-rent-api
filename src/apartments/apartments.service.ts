@@ -11,19 +11,18 @@ export class ApartmentsService {
   constructor(private readonly prisma: PrismaService) {}
 
   async create(userId: number, createApartmentDto: CreateApartmentDto) {
-    
-      const newApartment = await this.prisma.apartment.create({
-        data: {
-          title: createApartmentDto.title,
-          price: createApartmentDto.price,
-          rooms: createApartmentDto.rooms,
-          discountPrice: createApartmentDto.price,
-          size: createApartmentDto.size,
-          userId: userId
-        }
-      });
+    const newApartment = await this.prisma.apartment.create({
+      data: {
+        title: createApartmentDto.title,
+        price: createApartmentDto.price,
+        rooms: createApartmentDto.rooms,
+        discountPrice: createApartmentDto.price,
+        size: createApartmentDto.size,
+        userId: userId
+      }
+    });
 
-      return newApartment;
+    return newApartment;
   } 
 
   async findAll(filterDto: FilterApartmentDto, pageNumber: number) {

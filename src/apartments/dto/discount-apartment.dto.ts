@@ -4,7 +4,7 @@ import { IsNumber, IsPositive, Max, Min } from "class-validator";
 export class DiscountApartmentDto {
     @ApiProperty({
             description: 'Appy a discount to any apartment you own',
-            minimum: 1,
+            minimum: 0,
             maximum: 50,
             example: 10  
         })
