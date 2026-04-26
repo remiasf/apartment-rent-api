@@ -53,4 +53,27 @@ export class LiqPayService {
 
         return incomingSignature === expectedSignature;
     }
+
+    processPaymentCallback(data: string, signature: string){
+        const isValid = this.verifySignature(data, signature);
+        
+        if(!isValid){
+            console.error('Safety error: invalid signature!');
+            return {
+                status: 'error',
+                message: 'Invalid signature'
+            }
+        }
+
+        const decodedString = Buffer.from(data, 'base64').toString('utf-8');
+        const paymentData = JSON.parse(decodedString);
+
+        console.log(`Payment data: ${paymentData.order_id} status: ${paymentData.status}`);
+
+        if(paymentData.status === 'success' || paymentData.status === 'sandbox'){
+            console.log(`Booking ${paymentData.order_id} payed successfully`);
+        }
+
+        return {status: 'success'};
+    }
 }
