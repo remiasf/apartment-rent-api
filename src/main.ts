@@ -19,8 +19,8 @@ async function bootstrap() {
 
   const config = new DocumentBuilder()
     .setTitle('GaijinPot API') 
-    .setDescription('Документация для API аренды квартир')
-    .setVersion('1.0')
+    .setDescription('Apartment rent documentation')
+    .setVersion('2.0')
     .addBearerAuth() 
     .build();
     
