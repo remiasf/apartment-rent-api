@@ -22,7 +22,7 @@ export class PaymentsController {
         <html lang="ru">
         <head>
             <meta charset="UTF-8">
-            <title>Тестовая касса LiqPay</title>
+            <title>Test LiqPay</title>
             <style>
                 body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f7f6; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
                 .checkout-card { background: white; padding: 40px; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); text-align: center; max-width: 400px; width: 100%; }
@@ -34,14 +34,14 @@ export class PaymentsController {
         </head>
         <body>
             <div class="checkout-card">
-                <h2>Оплата бронирования #${bookingId}</h2>
-                <p>Вы будете перенаправлены на защищенный шлюз LiqPay</p>
+                <h2>Booking payment #${bookingId}</h2>
+                <p>You will be transfered to safe gateway LiqPay</p>
                 
                 <form method="POST" action="https://www.liqpay.ua/api/3/checkout" accept-charset="utf-8">
                     <input type="hidden" name="data" value="${paymentParams.data}" />
                     <input type="hidden" name="signature" value="${paymentParams.signature}" />
                     
-                    <button type="submit" class="pay-btn">Оплатить безопасно</button>
+                    <button type="submit" class="pay-btn">Pay</button>
                 </form>
             </div>
         </body>
